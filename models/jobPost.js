@@ -38,7 +38,7 @@ const posts = new mongoose.Schema({
         ids: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }
     }],
     
-}, { timestamp: true });
+}, { timestamps: true });
 
 
 module.exports=mongoose.model("Posts",posts)

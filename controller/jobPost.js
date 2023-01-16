@@ -279,9 +279,10 @@ exports.searchEmp = async(req, res) => {
 
 
 //for company dashboard
-exports.cmpJobs = (req, res) => {
-    Posts.find({ createdBy:req.body.cmp_id  }).then(data => {
-        res.send({
+exports.cmpJobs =async (req, res) => {
+    await Posts.find({ createdBy:"63a46d36dfb66018de0c1e91"  })//
+        .then(data => {
+        res.json({
             jobs: data
         })
     }).catch(err => {
@@ -385,26 +386,15 @@ exports.getEmpApplied = async (req, res) => {
         
 
     //cmp/dashboard/post/candidates/63ab17d583c16aa4119cb270
-        // const emps = Employee.find({ _id: { candidate_id: {_id: jobPost.candidate_id.ids } } })  //emp that applied for that job
-        // const empPr = Profile.find({ candidate_id: emps._id }) //emp profiles that apply for job
-        // empPr.forEach((pr) => {
-        //     data.push({
-        //         profile: pr,
-        //         name: Employee.find({ _id: { candidate_id: pr.candidate_id } }).select("firstName lastName")
-        //     })
-            // res.json({
-            //     data: dz,
-            //     message:"data fetched"
-            // })
     
 }
 
  //retrive resume and employee name and email
 exports.showResume = (req, res)=>{
-    Profile.find({ candidate_id: req.body.emp_id }).select("resume")
+    Profile.find({ candidate_id: req.body.emp_id }).select("resume")  //req.params.id
         .then(data => {
             res.json({
-                data:data
+                path:data[0].resume
             })
         }).catch(err => {
             res.json({

@@ -15,7 +15,7 @@ exports.Signup = (req, res) => {
             }
             const { name, email, hash_password, ph_no, address } = req.body;
             const { country, city } = address;
-            const pw = await bcrypt.hashSync(hash_password, 10);
+            const pw = bcrypt.hashSync(hash_password, 10);
             const _comp = new Company({
                 name, email, hash_password: pw, ph_no, address: { country, city }
             });
@@ -25,12 +25,13 @@ exports.Signup = (req, res) => {
             
             _comp.save((err,data) => {
                 if (data) {
-                    return res.status(200).json({
+                    return res.json({
                         message:"Company created successfully"
                     })
                 }
-                if (err) {
-                    return res.status(400).json({
+                else if (err) {
+                    
+                    return res.json({
                         message: "Something went wrong",
                         error:err
                     })

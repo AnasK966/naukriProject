@@ -4,19 +4,19 @@ const bcrypt = require("bcrypt");
 const Posts = require("../models/jobPost");
 
 
-exports.Signup = (req, res) => {
-    Employee.findOne({ email: req.body.email }).
+exports.Signup = async(req, res) => {
+   await Employee.findOne({ email: req.body.email }).
         exec(async (err, data) => {
             if (data) {
                 return res.status(400).json({
                     "message": "email already exist"
                 });
             }
-            const { firstName, lastName, email, hash_password, ph_no, address, postalCode } = req.body;
+            const { firstName, lastName, email, hash_password, ph_no, address } = req.body;
             const { country, city } = address;
             const password = await bcrypt.hashSync(hash_password, 10)
             const _employee = new Employee({
-                firstName, lastName, email, hash_password: password, ph_no, address: { country, city }, postalCode
+                firstName, lastName, email, hash_password: password, ph_no, address: { country, city }
             });
             _employee.save((err, emp) => {
                 if (err) {
