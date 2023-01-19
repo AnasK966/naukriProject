@@ -9,7 +9,7 @@ exports.Signup = async(req, res) => {
         exec(async (err, data) => {
             if (data) {
                 return res.status(400).json({
-                    "message": "email already exist"
+                    message: "email already exist"
                 });
             }
             const { firstName, lastName, email, hash_password, ph_no, address } = req.body;
@@ -20,13 +20,13 @@ exports.Signup = async(req, res) => {
             });
             _employee.save((err, emp) => {
                 if (err) {
-                    return res.status(400).json({
+                    return res.json({
                         message: "something went wrong",
                         error:err
                     })
                 }
-                if (emp) {
-                    return res.status(200).json({
+                else if (emp) {
+                    return res.json({
                         message: "User added Successfully"
                     })
                 }
@@ -45,6 +45,7 @@ exports.SignIn = async  (req, res) => {
             res.send({
                 token: token,
                 user: {
+                    email:emp.email,
                     emp_id: emp._id,
                     role: "emp"
                 }

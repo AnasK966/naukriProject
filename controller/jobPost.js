@@ -36,7 +36,9 @@ exports.addJob = (req, res) => {
 
 
 exports.applyJob = (req, res) => {
-    Posts.updateOne({ _id: req.params.id }, { $push: { candidate_id: { ids: req.body.emp_id } } }, { $inc: { candidateCount: 1 } }).
+    console.log("xyz")
+    console.log(req.user.emp_id,"xyz")
+    Posts.updateOne({ _id: req.params.id }, { $push: { candidate_id: { ids: req.params.emp_id } } }, { $inc: { candidateCount: 1 } }).
         then((data) => {
             res.status(200).json({
                 message: "applied successfully"
@@ -47,19 +49,7 @@ exports.applyJob = (req, res) => {
                 message: "Something went wrong",
                 error: err
             })
-        });
-    //     Posts.updateOne({ _id: req.params.id }, { $inc: { candidateCount: 1 } }).
-    //     then((data) => {
-    //         res.status(200).json({
-    //             message:"applied successfully"
-    //         })
-        
-    // }).catch((err) => {
-    //     res.status(400).json({
-    //         message: "Something went wrong",
-    //         error:err
-    //     })
-    // })  
+        }); 
         
     }
     
@@ -119,40 +109,108 @@ exports.appliedJobs = (req, res) => {
     })
 }
 
-
-
-
-
 exports.searchJob = async (req, res) => {
-    console.log(req.params.key);
-    const data= await Posts.find({
+    console.log(req.query.q);
+    await Posts.find({
         "$or": [
-            { "skillReq.name": { $regex: req.params.key ,$options: 'i'  } },
-            { "jobDesc": { $regex: req.params.key,$options: 'i'   } },
-            { "jobtype": { $regex: req.params.key,$options: 'i'  } },
-            { "qualReq.degree": { $regex: req.params.key, $options: 'i' } },
-            { "title": { $regex: req.params.key,$options: 'i'  }}
+            { "skillReq.name": { $regex: req.query.q ,$options: 'i'  } },
+            { "jobDesc": { $regex: req.query.q,$options: 'i'   } },
+            { "jobtype": { $regex: req.query.q,$options: 'i'  } },
+            { "qualReq.degree": { $regex: req.query.q, $options: 'i' } },
+            { "title": { $regex: req.query.q,$options: 'i'  }}
         ]
     }).then(data => {
         if (data.length >= 0) {
+            console.log("onn", data);
             res.json({
-                dat: data,
+                data: data,
                 message:"Fetched"
             })
         }
         else {
+            console.log("onnoff", data);
             res.json({
                 message:"found nothing"
             })
         }
         
     }).catch(err => {
+        console.log("off", data);
         res.json({
             error: err,
             message:"Something went wrong"
         })
     })
+    
 }
+
+
+// exports.getJobById = (req, res) => {
+//     console.log(req.params.id)
+//     const job = Posts.findById({ _id: req.params.id })
+//     console.log(job.createdBy)
+//     const cmp = Company.findOne({ _id: job.createdBy })
+//     console.log(cmp.name)
+//     try {
+//         return res.json({
+//             job: job,
+//             cmp:cmp
+//         })
+//     }
+//     catch(err) {
+//         return res.json({
+//             message: "something went wrong",
+//             error:err
+//         })
+//     }
+// }
+
+exports.getJobById = (req, res) => {
+    console.log(req.params.id)
+    Posts.findById({ _id: req.params.id }).then(data => {
+        return res.json({
+            job: data
+      })
+        
+    }).catch(err=> {
+        return res.json({
+            message: "something went wrong",
+            error:err
+        })
+    })
+}
+
+
+// exports.searchJob = async (req, res) => {
+//     console.log(req.params.key);
+//     const data= await Posts.find({
+//         "$or": [
+//             { "skillReq.name": { $regex: req.params.key ,$options: 'i'  } },
+//             { "jobDesc": { $regex: req.params.key,$options: 'i'   } },
+//             { "jobtype": { $regex: req.params.key,$options: 'i'  } },
+//             { "qualReq.degree": { $regex: req.params.key, $options: 'i' } },
+//             { "title": { $regex: req.params.key,$options: 'i'  }}
+//         ]
+//     }).then(data => {
+//         if (data.length >= 0) {
+//             res.json({
+//                 dat: data,
+//                 message:"Fetched"
+//             })
+//         }
+//         else {
+//             res.json({
+//                 message:"found nothing"
+//             })
+//         }
+        
+//     }).catch(err => {
+//         res.json({
+//             error: err,
+//             message:"Something went wrong"
+//         })
+//     })
+// }
 const getSkills = (array) => {
     return array.map((arItem, _) => {
       return arItem.skills.map((nestItem,_) => {
