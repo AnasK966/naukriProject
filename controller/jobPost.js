@@ -7,26 +7,34 @@ const emp = require("../models/emp");
 
 
 exports.addJob = (req, res) => {
-    const job = new Posts({
+    console.log(req.body.skillReq)
+    console.log(req.body.createdBy)
+    console.log(req.body.expReq)
+    console.log(req.body.salRange)
+    console.log(req.body.qualReq)
+    const _job = new Posts({
         title: req.body.title,
         jobtype: req.body.jobtype,
         jobDesc: req.body.jobDesc,
         qualReq: req.body.qualReq,
         skillReq: req.body.skillReq,
         salRange: req.body.salRange,
-        expReq: req.expReq,
+        expReq: req.body.expReq,
+        no_of_candidates:req.body.no_of_candidates,
         createdBy: req.body.createdBy,  //req.user.cmp_id
     });
 
-    job.save((err, data) => {
+    _job.save((err, data) => {
         if (err) {
-            return res.status(400).json({
+            console.log(err)
+            return res.json({
                 message: "Something went wrong",
                 error: err
             })
         }
         if (data) {
-            return res.status(201).json({
+            console.log(data)
+            return res.json({
                 message: "job added successfully"
             })
         }
@@ -36,9 +44,9 @@ exports.addJob = (req, res) => {
 
 
 exports.applyJob = (req, res) => {
-    console.log("xyz")
-    console.log(req.user.emp_id,"xyz")
-    Posts.updateOne({ _id: req.params.id }, { $push: { candidate_id: { ids: req.params.emp_id } } }, { $inc: { candidateCount: 1 } }).
+    // console.log("xyz")
+    // console.log(req.query.emp_id,req.query.job_id,"xyz")
+    Posts.updateOne({ _id: req.query.job_id }, { $push: { candidate_id: { ids: req.query.emp_id } } }, { $inc: { candidateCount: 1 } }).
         then((data) => {
             res.status(200).json({
                 message: "applied successfully"
@@ -63,7 +71,8 @@ exports.updateJob = async (req, res) => {
                 qualReq: req.body.qualReq,
                 skillReq: req.body.skillReq,
                 salRange: req.body.salRange,
-                expReq: req.expReq
+                expReq: req.expReq,
+                no_of_candidates:req.body.no_of_candidates
             }
             }).then(data => {
                 res.json({
@@ -80,7 +89,7 @@ exports.updateJob = async (req, res) => {
 
 exports.delJob = (req, res) => {
     
-    Posts.deleteOne({ _id: req.params.id }).then(data => {
+    Posts.deleteOne({ _id: req.query.job_id }).then(data => {
         return res.status(201).json({
             message:"Deleted Successfully"
         })
@@ -95,9 +104,26 @@ exports.delJob = (req, res) => {
 }
 
 
+// const getCmpId = (array) => {
+//     return array.ids
+// }
+// exports.appliedJobs = (req, res) => {
+//     console.log(req.params.emp_id)
+//     const data = Posts.find({ candidate_id: { $elemMatch: { ids: req.params.emp_id } } }).select('title _id')
+//     const id = getCmpId(data)
+//     console.log(id)
+    
+        
+//         // return res.json({
+//         //     data:data
+//         // })
+    
+// }
+
 
 exports.appliedJobs = (req, res) => {
-    Posts.find({ candidate_id: { _id: req.body.emp_id } }).
+    console.log(req.params.emp_id)
+    Posts.find({ candidate_id: { $elemMatch: { ids: req.params.emp_id } } }).select('title _id').
         then(data => {
         res.json({
             job:data
@@ -109,6 +135,8 @@ exports.appliedJobs = (req, res) => {
     })
 }
 
+
+//implemented
 exports.searchJob = async (req, res) => {
     console.log(req.query.q);
     await Posts.find({
@@ -145,26 +173,9 @@ exports.searchJob = async (req, res) => {
 }
 
 
-// exports.getJobById = (req, res) => {
-//     console.log(req.params.id)
-//     const job = Posts.findById({ _id: req.params.id })
-//     console.log(job.createdBy)
-//     const cmp = Company.findOne({ _id: job.createdBy })
-//     console.log(cmp.name)
-//     try {
-//         return res.json({
-//             job: job,
-//             cmp:cmp
-//         })
-//     }
-//     catch(err) {
-//         return res.json({
-//             message: "something went wrong",
-//             error:err
-//         })
-//     }
-// }
 
+
+//implemented for job details
 exports.getJobById = (req, res) => {
     console.log(req.params.id)
     Posts.findById({ _id: req.params.id }).then(data => {
@@ -180,37 +191,6 @@ exports.getJobById = (req, res) => {
     })
 }
 
-
-// exports.searchJob = async (req, res) => {
-//     console.log(req.params.key);
-//     const data= await Posts.find({
-//         "$or": [
-//             { "skillReq.name": { $regex: req.params.key ,$options: 'i'  } },
-//             { "jobDesc": { $regex: req.params.key,$options: 'i'   } },
-//             { "jobtype": { $regex: req.params.key,$options: 'i'  } },
-//             { "qualReq.degree": { $regex: req.params.key, $options: 'i' } },
-//             { "title": { $regex: req.params.key,$options: 'i'  }}
-//         ]
-//     }).then(data => {
-//         if (data.length >= 0) {
-//             res.json({
-//                 dat: data,
-//                 message:"Fetched"
-//             })
-//         }
-//         else {
-//             res.json({
-//                 message:"found nothing"
-//             })
-//         }
-        
-//     }).catch(err => {
-//         res.json({
-//             error: err,
-//             message:"Something went wrong"
-//         })
-//     })
-// }
 const getSkills = (array) => {
     return array.map((arItem, _) => {
       return arItem.skills.map((nestItem,_) => {
@@ -246,7 +226,7 @@ exports.relatedPosts = async (req, res) => {
     skillString = "xz";
     expString = "xz";
     eduString = "";
-    const profile = await Profile.find({ candidate_id: req.body.emp_id });//req.user.emp_id
+    const profile = await Profile.find({ candidate_id: req.query.emp_id });//req.user.emp_id
     //write a function to check if a job is closed or not
     const skill = (getSkills(profile)).forEach(data => {
         data.forEach(xyz => {
@@ -278,7 +258,7 @@ exports.relatedPosts = async (req, res) => {
             "$or": [
                 { "skillReq.name": { $regex: `${skillString}`,$options: 'i'} },
                 { "qualReq.degree": { $regex: `${eduString}`, $options: 'i' } },
-                // { "jobDesc": { $regex: `${certString}` ,$options: 'i'} },
+                { "jobDesc": { $regex: `${certString}` ,$options: 'i'} },
                 { "title": { $regex: `${expString}`,$options: 'i'} }
             ]
         }).then(data => {
@@ -303,10 +283,10 @@ exports.relatedPosts = async (req, res) => {
     }
     
 
-
+// fetched the candidate_id from this data then redirect it to their respective profiles
 exports.searchEmp = async(req, res) => {
     console.log(req.params.key);
-    const data= await Profile.find({
+    await Profile.find({
         "$or": [
             { "skills.name": { $regex: req.params.key ,$options: 'i'  } },
             { "education": { $regex: req.params.key,$options: 'i'   } },
@@ -338,7 +318,7 @@ exports.searchEmp = async(req, res) => {
 
 //for company dashboard
 exports.cmpJobs =async (req, res) => {
-    await Posts.find({ createdBy:"63a46d36dfb66018de0c1e91"  })//
+    await Posts.find({ createdBy:req.query.cmp_id  })//
         .then(data => {
         res.json({
             jobs: data
@@ -348,45 +328,56 @@ exports.cmpJobs =async (req, res) => {
             error: err,
             message:"something went wrong"
         })
-    })   //jobs by company req.user.cmp_id
+    })   
     
 }
-
+exports.jobs = (req, res) => {
+    Posts.find().then(data => {
+        res.json({
+            jobs: data
+        })
+    }).catch(err => {
+        res.status(400).json({
+            error: err,
+            message:"something went wrong"
+        })
+    }) 
+}
 
 
 //for company dashbboard
-exports.getEmp = (req, res) => {
-    const emp=Posts.aggregate([
-        { $match: { createdBy: req.body.cmp_id } },
-        {
-            $lookup: {
-                from: "Employee",
-                localField:"candidate_id",
-                foreignField: "_id",
-                as:"Employe"
-            }
-        },
-        {
-            $project: {
-                firstName: "$Employe.firstName",
-                email: "$Employe.lastName",
-                _id:    "$Employe._id"
+// exports.getEmp = (req, res) => {
+//     const emp=Posts.aggregate([
+//         { $match: { createdBy: req.body.cmp_id } },
+//         {
+//             $lookup: {
+//                 from: "Employee",
+//                 localField:"candidate_id",
+//                 foreignField: "_id",
+//                 as:"Employe"
+//             }
+//         },
+//         {
+//             $project: {
+//                 firstName: "$Employe.firstName",
+//                 email: "$Employe.lastName",
+//                 _id:    "$Employe._id"
                 
-            }
-        }
+//             }
+//         }
 
-    ]).then(data => {
-        res.json({
-            data:emp
-        })
-    }).catch(err => {
-        res.json({
-            error:err
-        })
-    })
+//     ]).then(data => {
+//         res.json({
+//             data:emp
+//         })
+//     }).catch(err => {
+//         res.json({
+//             error:err
+//         })
+//     })
     
     
-}
+// }
 
 
 const getCandID = (array) => {
@@ -443,7 +434,7 @@ exports.getEmpApplied = async (req, res) => {
         })
         
 
-    //cmp/dashboard/post/candidates/63ab17d583c16aa4119cb270
+    
     
 }
 
@@ -458,8 +449,7 @@ exports.showResume = (req, res)=>{
             res.json({
                 message: "something went wrong",
                 error:err
-            })
-            
-        
+            })    
     })
- }
+}
+//or use showProfile in empProfile

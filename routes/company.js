@@ -6,7 +6,7 @@ const { requireSignin, cmpMiddleware } = require("../middleware/commonMiddleware
 
 
 
-router.post("/signup", uploadLogo,Signup);//uploadLogo,
+router.post("/signup", Signup);//uploadLogo,
 router.post("/signin", SignIn);
 router.post("/update", requireSignin, uploadLogo, updateInfo);
 

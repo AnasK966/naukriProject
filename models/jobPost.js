@@ -13,9 +13,9 @@ const posts = new mongoose.Schema({
     qualReq: {
         degree: { type: String }
     },
-    skillReq: [{
-        name:{ type: String }
-    }],
+    skillReq: [
+        { type: String }
+    ],
     salRange: {
         maxSal: {type:String},
         minSal:{type:String}
@@ -23,10 +23,15 @@ const posts = new mongoose.Schema({
     expReq: {
         type:Number
     },
-    candidateCount: {
-        type: Number,
-        default:0
+    no_of_candidates: {
+        type:Number,
+        required:true
+        
     },
+    // candidateCount: {
+    //     type: Number,
+    //     default:0
+    // },
     jobStatus: {
         type: Boolean,
         default:true  
