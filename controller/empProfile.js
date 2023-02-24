@@ -1,24 +1,20 @@
 const Profile = require("../models/empProfile");
+const Employee = require("../models/emp");
+const CV = require("../models/Cv");
 const multer = require("multer");
 const path = require("path");
 
 
 exports.addProfile = async (req, res) => {
-    const prof = await Profile.findOne({ _id: req.body.candidate_id});//req.user.emp_id
-    if (prof!=null) {
-        this.updateProfile();
-    }
-    else {
-        const profile = new Profile({
+        const _profile = new Profile({
             candidate_id: req.body.candidate_id,  ////req.user.emp_id
             education: req.body.education,
             skills: req.body.skills,
-            workExp: req.body.workExp,
             certificates: req.body.certificates
         
         
         });
-        profile.save((err, data) => {
+        _profile.save((err, data) => {
             if (err) {
                 return res.status(400).json({
                     message: "something went wrong",
@@ -31,27 +27,26 @@ exports.addProfile = async (req, res) => {
                 })
             }
         })
-    }
 }
 
 exports.updateProfile = async (req, res) => {
-    try {
-        const profile = await Profile.findOneAndUpdate({ _id: req.user.emp_id }, {
+        await Profile.findOneAndUpdate({ _id: req.body.candidate_id }, {
             $set: {
             education: req.body.education,
             skills: req.body.skills,
-            workExp: req.body.workExp,
             certificates: req.body.certificates,
             }
-        })
-        
-    }
-    catch (err) {
-        res.status(400).json({
+        }).then(data => {
+            return res.json({
+                message:"Profile updated"
+            })
+            
+        }).catch(err => {
+            return res.status(400).json({
             message: "Something went wrong",
             error:err
         })
-    }
+    })
 }
 
 exports.uploadResume = multer({
@@ -83,18 +78,22 @@ exports.uploadResume = multer({
 }).single("resume")
 
 
-exports.storeResume = async (req, res) => {
-    const resum = await Profile.findOne({ candidate_id: req.body.candidate_id }) //req.user.emp_id
-    if (resum) {
-        resum.resume = req.file.path;
-        resum.save((err, data) => {
+exports.storeResume = (req, res) => {
+    console.log("Storeresume")
+    console.log(req.file)
+    _cv = new CV({
+        resume: req.body.resumeFile,
+        candidate_id: req.body.candidate_id
+        
+    })
+        _cv.save((err, data) => {
             if (data) {
-                return res.status(200).json({
+                return res.json({
                     message: "Uploaded  resume"
                 })
             }
             if (err) {
-                return res.status(400).json({
+                return res.json({
                     message: "soemthing went wrong",
                     error:err
                 })
@@ -102,42 +101,140 @@ exports.storeResume = async (req, res) => {
             
         })
         
-    }
-        else {
-            const saveResume = new Profile({
-                candidate_id:req.body.candidate_id, //req.user.emp_id
-                resume: req.file.path
-            })
-            saveResume.save((err, data) => {
-                if (err) {
-                    return res.status(400).json({
-                        message: "something went wrong",
-                        error: err
-                    })
-                }
-                if (data) {
-                    return res.status(201).json({
-                        message: "added successfully"
-                    })
-                }
-            })
+}
+    
+
+const getProf = (id) => {
+    Profile.aggregate([
+        {
+            $lookup:
+            {
+
+                from: "employees",
+                localField: "candidate_id",
+                foreignField: "_id",
+                as: "Employee"
+            }
         }
         
-    }
+    ]).then(data => {
+        return data
+    }) 
 
-
-exports.showProfile = async (req, res)=>{
-    await Profile.find({ candidate_id: req.body.emp_id }
-    ).then(data => {
-        res.json({
-            data: data,
-            message: "Fetched"
-        })
-    }).catch(err => {
-        res.json({
-            error: err,
-            message:"Something went wrong"
-        })
-        
-    })
 }
+
+exports.showProfile = async (req, res) => {
+    await Profile.aggregate([
+        {
+            $lookup:
+            {
+                from: "employees",
+                localField: "candidate_id",
+                foreignField: "_id",
+                as: "Employee"
+            }
+        }
+        
+    ]).then(data => {
+        data.map((arrItem) => {
+            if (arrItem.candidate_id == req.params.id) {
+                return res.json({
+                    data:arrItem,
+                    message:"fetched"
+                })
+            }
+        })
+    }) 
+   }
+    
+// exports.showProfile =async (req, res) => {
+//     await Profile.aggregate([
+//         { "$match": { "candidate_id": `${req.params.id}` } },
+//         {
+//             $lookup: {
+//                 from: "employees",
+//                 let: { candidate_id: "$candidate_id", id:"$_id"  },
+//                 pipeline: [{
+//                     $match: {
+//                         $and: [
+//                             { $expr: { $eq: ["$$id", `${req.params.id}`] } },
+//                             { $expr: { $eq: ["$$candidate_id", `${req.params.id}`] } }
+//                         ]
+                        
+//                     }
+//                 }],
+//                 as: "employee"
+//             }
+//         }]).then(data => {
+
+//             return res.json({
+//                 data:data,
+//                 message:"Fetched"
+//             })
+        
+//         // else {
+//         //     return res.json({
+//         //         message:"No Profile Found"
+//         //     })
+//         // }
+//     })
+// }
+
+// exports.showEmp= async (req, res) => {
+//     await Employee.find({ _id: req.params.id }).select("firstName lastName address email ph_no").then(data => {
+//         if ( data.length > 0) {
+//             return res.json({
+//                 dataEmp:data
+    
+//             })
+//         }
+//         else {
+//             return res.json({
+//                 message:"No Profile Found"
+//             })
+//         }
+        
+//     }).catch(err => {
+//         return res.json({
+//             message: "Something went wrong",
+//             error:err
+//         })
+//     })
+    
+    
+// }    
+
+// exports.showProfile = async (req, res)=>{
+//     await Profile.aggregate([
+//         {
+//             $lookup:
+//             {
+
+//                 from: "employees",
+//                 localField: "candidate_id",
+//                 foreignField: "_id",
+//                 as: "Employee"
+//             }
+//         }
+        
+//    ]).then(data => {
+//         if (data.length > 0) {
+//             return res.json({
+//                 data: data,
+//                 message: "Fetched"
+//             })
+//         }
+//         else {
+//             return res.json({
+//                 message: "No Profile Found"
+//             })
+//         }
+        
+//     }).catch(err => {
+//         res.json({
+//             error: err,
+//             message:"Something went wrong"
+//         })
+        
+//     })
+// }

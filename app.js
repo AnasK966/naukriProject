@@ -5,8 +5,8 @@ const env = require("dotenv")
 const cors = require('cors')
 
 //import routes
-const empRoutes = require("../Naukri/routes/emp")
-const cmpRoutes = require("../Naukri/routes/company")
+const empRoutes = require("../Naukri backend/routes/emp")
+const cmpRoutes = require("../Naukri backend/routes/company")
 
 
 
@@ -23,9 +23,12 @@ mongoose.connect(uri).then(() => {
 app.use(cors()); //for frontend and backend connection
 app.use(express.json()); // encoded urls json
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static("uploads"));
 
 //routing
+app.get("/", (req, res) => {
+    res.json({ message: "HELLO NIGGA!" });
+  });
 app.use("/emp", empRoutes);
 app.use("/cmp", cmpRoutes);
 
@@ -33,9 +36,9 @@ app.use("/cmp", cmpRoutes);
 
 
 
-app.use((err, req, res, next) => {
-    res.status(500).send({error:err.message})
-})
+// app.use((err, req, res, next) => {
+//     res.status(500).send({error:err.message})
+// })
 
 app.listen(process.env.PORT, () => {
     console.log(`listening at ${process.env.PORT}`)

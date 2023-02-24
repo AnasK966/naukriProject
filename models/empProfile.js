@@ -5,19 +5,12 @@ const profile = new mongoose.Schema({
     },
     education: { type: String },
     skills: [
-        { name: { type: String } }
+        { type: String } 
     ],
-    workExp: [{
-        companyName: { type: String },
-        exp: { type: Number },
-        designation: { type: String }
-    }],
-    certificates: [{
-        name:{type:String}
-    }],
-    resume: {
-        type:String
-    }
+    certificates: [
+        { type: String }
+    ]
+    
 })
 
 module.exports=mongoose.model("Profile",profile)

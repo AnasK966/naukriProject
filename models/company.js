@@ -26,9 +26,6 @@ const company = new mongoose.Schema({
     address: {
         country: { type: String },
         city: { type: String }
-    },
-    logo: {
-        type:String
     }
 
 });

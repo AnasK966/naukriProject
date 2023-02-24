@@ -5,8 +5,10 @@ exports.requireSignin = (req, res, next) => {
       const token = req.headers.authorization.split(" ")[1];
       const user = jwt.verify(token, process.env.JWT_SECRET);  //_id that we sent with the payload
       req.user = user;  //attach user with the request,token expiry and token issue time
+      console.log("ok");
     } else {
-      return res.status(400).json({ message: "Authorization required" });
+      console.log("not ok");
+      return res.json({ message: "Authorization required" });
     }
     next();
 };

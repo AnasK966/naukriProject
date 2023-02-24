@@ -45,7 +45,9 @@ exports.SignIn = async  (req, res) => {
             res.send({
                 token: token,
                 user: {
-                    email:emp.email,
+                    empfName: emp.firstName,
+                    emplName: emp.lastName,
+                    empAddr:emp.address,
                     emp_id: emp._id,
                     role: "emp"
                 }

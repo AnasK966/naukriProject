@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router()
 const { Signup, SignIn ,updateInfo,uploadLogo} = require("../controller/company");
-const { updateJob, delJob, getEmpApplied, cmpJobs ,addJob, searchJob} = require("../controller/jobPost");
+const { updateJob, delJob, getEmpApplied, cmpJobs ,addJob, searchJob, closeJob} = require("../controller/jobPost");
 const { requireSignin, cmpMiddleware } = require("../middleware/commonMiddleware");
 
 
@@ -17,6 +17,7 @@ router.delete("/delPost/:id", delJob); //require sigin   posts id
 router.get("/dashboard", cmpJobs);
 router.get("/dashboard/post/candidates/:id", getEmpApplied); //job posts id
 router.get("/search/:key", searchJob);
+router.patch("/closeJob", closeJob);
 
 
 module.exports = router;

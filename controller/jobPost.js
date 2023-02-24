@@ -2,7 +2,6 @@ const Posts = require("../models/jobPost");
 const Company = require("../models/company")
 const Employee = require("../models/emp");
 const Profile = require("../models/empProfile");
-const emp = require("../models/emp");
 
 
 
@@ -26,14 +25,14 @@ exports.addJob = (req, res) => {
 
     _job.save((err, data) => {
         if (err) {
-            console.log(err)
+
             return res.json({
                 message: "Something went wrong",
                 error: err
             })
         }
         if (data) {
-            console.log(data)
+    
             return res.json({
                 message: "job added successfully"
             })
@@ -41,6 +40,7 @@ exports.addJob = (req, res) => {
 
     })
 }  
+
 
 
 exports.applyJob = (req, res) => {
@@ -59,7 +59,22 @@ exports.applyJob = (req, res) => {
             })
         }); 
         
-    }
+}
+    
+
+exports.closeJob = (req, res) => {
+    Posts.findOneAndUpdate({ _id: req.params.id }, { $set: { jobStatus: false } }).
+        then(data => {
+        return res.json({
+            message:"job closed"
+        })
+    }).catch(err => {
+        return res.json({
+            message:"something went wrong"
+        })
+    })
+    
+}
     
 exports.updateJob = async (req, res) => {
     
@@ -79,17 +94,17 @@ exports.updateJob = async (req, res) => {
                     message:"update done"
                 }) 
             }).catch (err=> {
-        res.json({
-            message: "something went wrong",
-            error: err
+                res.json({
+                    message: "something went wrong",
+                    error: err
+            })
         })
-    })
 }
 
 
 exports.delJob = (req, res) => {
     
-    Posts.deleteOne({ _id: req.query.job_id }).then(data => {
+    Posts.deleteOne({ _id: req.params.id }).then(data => {
         return res.status(201).json({
             message:"Deleted Successfully"
         })
@@ -147,24 +162,21 @@ exports.searchJob = async (req, res) => {
             { "qualReq.degree": { $regex: req.query.q, $options: 'i' } },
             { "title": { $regex: req.query.q,$options: 'i'  }}
         ]
-    }).then(data => {
+    }).sort({updatedAt:-1}).then(data => {
         if (data.length >= 0) {
-            console.log("onn", data);
-            res.json({
+            return res.json({
                 data: data,
                 message:"Fetched"
             })
         }
         else {
-            console.log("onnoff", data);
-            res.json({
+            return res.json({
                 message:"found nothing"
             })
         }
         
     }).catch(err => {
-        console.log("off", data);
-        res.json({
+        return res.json({
             error: err,
             message:"Something went wrong"
         })
@@ -316,13 +328,26 @@ exports.searchEmp = async(req, res) => {
 
 
 
+
 //for company dashboard
-exports.cmpJobs =async (req, res) => {
-    await Posts.find({ createdBy:req.query.cmp_id  })//
-        .then(data => {
-        res.json({
-            jobs: data
-        })
+exports.cmpJobs = async (req, res) => {   
+    console.log(req.query.q)
+    await Posts.find(
+            { createdBy: req.query.q }
+        
+    ).then(data => {
+            if (data.length > 0) {
+                return res.json({
+                        jobs: data
+        })     
+            }
+            else {
+                return res.json({
+                    message:"Nothing Found"
+                })
+                
+            }
+        
     }).catch(err => {
         res.status(400).json({
             error: err,
@@ -332,7 +357,7 @@ exports.cmpJobs =async (req, res) => {
     
 }
 exports.jobs = (req, res) => {
-    Posts.find().then(data => {
+    Posts.find({jobStatus:true}).then(data => {
         res.json({
             jobs: data
         })
@@ -401,6 +426,7 @@ const getCand = (array) => {
 
 
 exports.getEmpApplied = async (req, res) => {
+    console.log(req.params.id)
     IDlst= []; //store the ids of canidates that appplied on that job
     const jobPost = await Posts.find({ _id: req.params.id })  //posts_id
     const candidates = getCandID(jobPost); //get candidates ids that applied for that job/on posts
@@ -415,6 +441,7 @@ exports.getEmpApplied = async (req, res) => {
         Employee.find({ _id: {$in:IDlst} }).select("firstName lastName email ph_no")
             .then(data => {
                 if (data.length > 0) {
+                    console.log(data)
                     res.json({
                         data: data,
                         message: "fetched"

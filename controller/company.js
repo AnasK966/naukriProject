@@ -49,6 +49,8 @@ exports.SignIn = async (req, res) => {
             res.send({
                 token: token,
                 user: {
+                    cmpName: cmp.name,
+                    cmpAddr:cmp.address,
                     cmp_id: cmp._id,
                     role: "cmp"
                 }
